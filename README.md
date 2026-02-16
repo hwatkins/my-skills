@@ -28,12 +28,38 @@ A collection of AI agent skills for the languages and frameworks I work with.
 |-------|-------------|
 | `frontend-typescript` | TypeScript type safety — generics, utility types, discriminated unions, strict patterns |
 | `frontend-tailwind` | Tailwind CSS — utility-first styling, responsive design, component patterns, dark mode |
+| `frontend-design` | Distinctive, production-grade UI design — bold aesthetics, typography, color, motion, anti-AI-slop patterns |
 
 ### Svelte
 
 | Skill | Description |
 |-------|-------------|
 | `svelte-core` | Svelte 5 inside Phoenix LiveView via LiveSvelte — props, live.pushEvent, SSR, slots, end-to-end reactivity |
+
+### Database
+
+| Skill | Description |
+|-------|-------------|
+| `postgresql-table-design` | PostgreSQL schema design — data types, indexing, constraints, partitioning, JSONB, performance patterns |
+| `sql-optimization-patterns` | SQL query optimization — EXPLAIN analysis, indexing strategies, N+1 elimination, pagination, batch operations |
+
+### Marketing / SaaS
+
+| Skill | Description |
+|-------|-------------|
+| `email-sequence` | Email sequence design — drip campaigns, welcome sequences, onboarding, re-engagement, lifecycle emails |
+| `referral-program` | Referral & affiliate program design — incentive structures, viral loops, optimization, launch checklists |
+| `seo-audit` | SEO audit framework — technical SEO, on-page optimization, content quality, Core Web Vitals, E-E-A-T |
+| `stripe-integration` | Stripe payment processing — checkout, subscriptions, webhooks, refunds, customer management, PCI compliance |
+| `spam-prevention` | Spam signup defense — honeypots, disposable email blocking, rate limiting, progressive CAPTCHA, behavioral detection |
+| `saas-security` | SaaS security — auth, MFA, session management, API protection, account takeover prevention, security headers |
+
+### Engineering Practices
+
+| Skill | Description |
+|-------|-------------|
+| `systematic-debugging` | Root-cause-first debugging — 4-phase process: investigate, pattern analysis, hypothesis testing, implementation |
+| `test-driven-development` | Language-agnostic TDD discipline — the Iron Law, red-green-refactor, rationalizations, verification checklist |
 
 ## Installation
 
@@ -273,6 +299,19 @@ Tailwind CSS styling:
 - Class organization and `cn()` utility
 - Custom theme configuration
 
+#### frontend-design
+
+Distinctive frontend interface design:
+
+- Design thinking process (purpose, tone, constraints, differentiation)
+- Typography (distinctive font pairing, avoiding generic choices)
+- Color & theme (CSS variables, dominant + accent palettes)
+- Motion (staggered reveals, scroll-triggering, hover states)
+- Spatial composition (asymmetry, overlap, grid-breaking)
+- Backgrounds & visual details (textures, gradients, grain overlays)
+- Anti-patterns to avoid (generic AI aesthetics)
+- Project context: Secret Falls hiking trails
+
 ### Svelte
 
 #### svelte-core (LiveSvelte)
@@ -289,6 +328,143 @@ Svelte 5 inside Phoenix LiveView via LiveSvelte:
 - Structs/Ecto serialization
 - Secret state caveat (JSON vs HTML over the wire)
 - Svelte 5 runes (`$state`, `$derived`, `$effect`)
+
+### Database
+
+#### postgresql-table-design
+
+PostgreSQL schema design and best practices:
+
+- Data types (BIGINT identity, TEXT, TIMESTAMPTZ, NUMERIC, JSONB, arrays, ranges, vectors)
+- Forbidden types (serial, varchar, money, timestamp without tz)
+- Indexing strategies (B-tree, GIN, GiST, BRIN, partial, expression, covering)
+- Constraints (PK, FK with manual indexes, UNIQUE NULLS NOT DISTINCT, CHECK, EXCLUDE)
+- Partitioning (range, list, hash, TimescaleDB)
+- JSONB guidance (GIN indexes, jsonb_path_ops, generated columns)
+- Performance patterns (update-heavy, insert-heavy, upsert-friendly)
+- Safe schema evolution (transactional DDL, concurrent indexes)
+- Row-level security, extensions, generated columns
+
+#### sql-optimization-patterns
+
+SQL query optimization and performance:
+
+- EXPLAIN plan analysis (Seq Scan, Index Scan, join methods, cost metrics)
+- Index strategies (B-tree, GIN, GiST, BRIN, partial, expression, covering)
+- N+1 query elimination (JOINs, batch loading)
+- Cursor-based pagination (replacing slow OFFSET)
+- Aggregate optimization (COUNT, GROUP BY, covering indexes)
+- Subquery optimization (correlated → JOIN, CTEs, window functions)
+- Batch operations (INSERT, UPDATE, COPY)
+- Materialized views and partitioning
+- Monitoring queries (pg_stat_statements, missing/unused indexes)
+- Common pitfalls and best practices
+
+### Marketing / SaaS
+
+#### email-sequence
+
+Email sequence and drip campaign design:
+
+- Sequence types (welcome, lead nurture, re-engagement, onboarding, post-purchase)
+- Timing and delay strategy
+- Subject line and preview text patterns
+- Email copy structure (hook, context, value, CTA)
+- Email types by category (onboarding, retention, billing, win-back, campaigns)
+- Output format templates for sequence planning
+- CTA guidelines and formatting best practices
+
+#### referral-program
+
+Referral and affiliate program design:
+
+- Referral vs affiliate program selection
+- The referral loop (trigger → share → convert → reward)
+- Incentive structures (single-sided, double-sided, tiered)
+- Share mechanism design and trigger moment identification
+- Program optimization (A/B tests, common problems & fixes)
+- Key metrics (referral rate, conversion, LTV, CAC comparison)
+- Launch checklist (before, during, post-launch)
+- Referral email sequences
+
+#### seo-audit
+
+SEO audit and diagnosis:
+
+- Audit framework (crawlability, indexation, technical, on-page, content, authority)
+- Technical SEO (robots.txt, sitemaps, site architecture, crawl budget)
+- Core Web Vitals (LCP, INP, CLS targets and speed factors)
+- On-page optimization (titles, meta descriptions, headings, internal linking)
+- Content quality assessment (E-E-A-T signals, depth, engagement)
+- Common issues by site type (SaaS, e-commerce, blog, local)
+- Audit report output format with prioritized action plans
+
+#### stripe-integration
+
+Stripe payment processing integration:
+
+- Payment flows (hosted checkout, Payment Intents, Setup Intents)
+- Subscription billing (products, prices, invoices, customer portal)
+- Webhook handling (signature verification, idempotency, critical events)
+- Customer management (payment methods, metadata)
+- Refunds and dispute handling
+- Testing with test cards and test mode
+- Best practices (PCI compliance, SCA, error handling)
+
+#### spam-prevention
+
+Spam signup and bot account defense:
+
+- Layered defense strategy (invisible first, friction only when needed)
+- Honeypot fields and time-based detection
+- Disposable email domain blocking and MX validation
+- IP and fingerprint-based rate limiting
+- Progressive CAPTCHA (Cloudflare Turnstile, hCaptcha, ALTCHA)
+- Post-signup behavioral scoring
+- Automated cleanup of unconfirmed accounts
+- Implementation checklist (minimum, enhanced, advanced)
+
+#### saas-security
+
+SaaS application security best practices:
+
+- Password security (bcrypt, breached password checking, NIST guidelines)
+- MFA (TOTP, WebAuthn/passkeys, recovery codes)
+- Session management (rotation, invalidation, secure cookies)
+- API token security (hashed storage, expiration, revocation)
+- Authorization (RBAC, resource-level checks, scoped queries)
+- API rate limiting and input validation
+- Security headers (HSTS, CSP, CORS)
+- Account takeover prevention (brute force, sudo mode)
+- Data protection (encryption at rest, audit logging)
+
+### Engineering Practices
+
+#### systematic-debugging
+
+Root-cause-first debugging methodology:
+
+- The Iron Law: no fixes without root cause investigation first
+- Phase 1: Root cause investigation (error reading, reproduction, evidence gathering)
+- Phase 2: Pattern analysis (find working examples, compare differences)
+- Phase 3: Hypothesis and testing (scientific method, minimal changes)
+- Phase 4: Implementation (failing test, single fix, verify)
+- 3+ failed fixes = question the architecture
+- Red flags and common rationalizations
+- Multi-component diagnostic instrumentation
+
+#### test-driven-development
+
+Language-agnostic TDD methodology and discipline:
+
+- The Iron Law: no production code without a failing test first
+- Red-Green-Refactor cycle with mandatory verification steps
+- Why order matters (tests-first vs tests-after)
+- Common rationalizations and rebuttals
+- Red flags that mean "stop and start over"
+- Bug fix workflow (failing test → fix → verify)
+- Verification checklist before marking work complete
+- When stuck: simplify design, not tests
 
 ## License
 
