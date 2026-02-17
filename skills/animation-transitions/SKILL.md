@@ -272,6 +272,45 @@ end
 </div>
 ```
 
+### List Item Enter/Exit (`phx-mounted` / `phx-remove`)
+
+LiveView provides two special bindings for animating element lifecycle:
+
+- `phx-mounted` — fires when the element first appears in the DOM (after a server patch adds it)
+- `phx-remove` — fires when LiveView is about to remove the element, and **delays removal** until the animation completes
+
+```elixir
+def fade_in_item(js \\ %JS{}, id) do
+  JS.show(js,
+    to: "##{id}",
+    transition: {"ease-out duration-300", "opacity-0 translate-y-2", "opacity-100 translate-y-0"},
+    time: 300
+  )
+end
+
+def fade_out_item(js \\ %JS{}, id) do
+  JS.hide(js,
+    to: "##{id}",
+    transition: {"ease-in duration-200", "opacity-100", "opacity-0 -translate-x-8"},
+    time: 200
+  )
+end
+```
+
+```heex
+<div
+  :for={item <- @items}
+  id={"item-#{item.id}"}
+  phx-mounted={fade_in_item("item-#{item.id}")}
+  phx-remove={fade_out_item("item-#{item.id}")}
+>
+  {item.name}
+</div>
+```
+
+This is the cleanest way to animate stream inserts and deletes — the server controls
+the list, and the client handles the visual transitions.
+
 ## Svelte Transitions
 
 ### Built-in Transitions
@@ -586,12 +625,180 @@ If your page content is a Svelte component, use Svelte transitions directly:
 {/key}
 ```
 
-## Coordinating Systems Together
+## Cross-System Animation Coordination
 
-### LiveView Modal with Svelte Content
+### Boundary Rules
+
+The fundamental rule: **each element has one animation owner.**
+
+- Elements rendered by HEEx (Phoenix templates) → animated by JS commands or CSS
+- Elements rendered by Svelte (`{#if}`, `{#each}`) → animated by Svelte transitions
+- Elements that exist in both contexts → use CSS as the neutral ground
+
+Never do this:
+```svelte
+<!-- BAD: Svelte trying to transition a LiveView-managed element -->
+<div id="liveview-element" transition:fade>...</div>
+```
+
+LiveView will patch this element and Svelte's transition state will be lost or conflict.
+
+### Shared Timing Tokens
+
+Define animation timing as CSS custom properties so both systems use the same durations:
+
+```css
+:root {
+  /* Duration tokens */
+  --duration-fast: 150ms;
+  --duration-normal: 200ms;
+  --duration-slow: 300ms;
+  --duration-slower: 500ms;
+
+  /* Easing tokens */
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+```
+
+Reference in Svelte:
+```svelte
+<script>
+  const DURATION_NORMAL = 200; // Matches --duration-normal
+  const DURATION_SLOW = 300;   // Matches --duration-slow
+</script>
+
+{#if show}
+  <div transition:fly={{ y: 10, duration: DURATION_NORMAL }}>...</div>
+{/if}
+```
+
+Reference in Phoenix JS commands:
+```elixir
+# time: values should match the CSS duration tokens
+@duration_fast 150
+@duration_normal 200
+@duration_slow 300
+
+def fade_in(js \\ %JS{}, selector) do
+  JS.show(js, to: selector,
+    transition: {"ease-out duration-200", "opacity-0", "opacity-100"},
+    time: @duration_normal
+  )
+end
+```
+
+### LiveView ↔ Svelte Event Handoffs
+
+#### LiveView Triggers Svelte Animation
 
 ```elixir
-# Phoenix handles the modal shell animation
+# Server pushes event to client
+def handle_event("open_editor", %{"id" => id}, socket) do
+  {:noreply, push_event(socket, "editor:open", %{id: id})}
+end
+```
+
+```javascript
+// Hook receives event and bridges to Svelte via CustomEvent
+const EditorBridge = {
+  mounted() {
+    this.handleEvent("editor:open", ({id}) => {
+      window.dispatchEvent(new CustomEvent("editor:open", { detail: { id } }));
+    });
+  }
+};
+```
+
+```svelte
+<script>
+  import { fly } from "svelte/transition";
+  import { onMount } from "svelte";
+
+  let isOpen = $state(false);
+  let editorId = $state(null);
+
+  onMount(() => {
+    const handler = (e) => {
+      editorId = e.detail.id;
+      isOpen = true;
+    };
+    window.addEventListener("editor:open", handler);
+    return () => window.removeEventListener("editor:open", handler);
+  });
+</script>
+
+{#if isOpen}
+  <div transition:fly={{ x: 300, duration: 300 }}>
+    <!-- Svelte-owned editor component -->
+  </div>
+{/if}
+```
+
+#### Svelte Triggers LiveView Animation
+
+```svelte
+<script>
+  function closePanel() {
+    const hook = document.querySelector("[phx-hook='PanelBridge']").__phxHook;
+    hook.pushEvent("panel:closed", {});
+  }
+</script>
+
+<button onclick={closePanel}>Close</button>
+```
+
+```elixir
+def handle_event("panel:closed", _params, socket) do
+  {:noreply,
+    socket
+    |> push_event("animate:panel-close", %{})
+    |> assign(panel_open: false)
+  }
+end
+```
+
+#### Server-Triggered Svelte Tween
+
+```elixir
+# Server pushes animation trigger
+def handle_info({:score_updated, score}, socket) do
+  {:noreply,
+   socket
+   |> assign(:score, score)
+   |> push_event("score-changed", %{score: score})}
+end
+```
+
+```svelte
+<script>
+  import { Tween } from "svelte/motion";
+  import { cubicOut } from "svelte/easing";
+
+  let { score, live } = $props();
+
+  const displayScore = new Tween(score, { duration: 600, easing: cubicOut });
+
+  // React to prop changes from LiveView
+  $effect(() => {
+    displayScore.target = score;
+  });
+</script>
+
+<span class="text-4xl font-bold tabular-nums">
+  {Math.round(displayScore.current)}
+</span>
+```
+
+### Common Coordination Patterns
+
+#### LiveView Modal with Svelte Content
+
+LiveView handles the modal shell animation; Svelte handles internal animations:
+
+```elixir
 def show_modal(js \\ %JS{}) do
   js
   |> JS.show(to: "#modal-overlay", transition: {"ease-out duration-300", "opacity-0", "opacity-100"})
@@ -609,62 +816,57 @@ end
 </div>
 ```
 
-### LiveView List with Svelte Item Animations
+#### Staggered List with Mixed Rendering
+
+LiveView renders the list structure; items that need rich interactivity are Svelte islands:
 
 ```heex
-<%!-- LiveView manages the list via streams --%>
 <div id="items" phx-update="stream">
-  <div :for={{dom_id, item} <- @streams.items} id={dom_id}>
-    <%!-- Each item is a Svelte component with its own transitions --%>
-    <.svelte name="AnimatedItem" props={%{item: item}} socket={@socket} />
+  <div
+    :for={{dom_id, item} <- @streams.items}
+    id={dom_id}
+    phx-mounted={JS.transition({"ease-out duration-300", "opacity-0 translate-y-2", "opacity-100 translate-y-0"}, time: 300)}
+    phx-remove={JS.hide(transition: {"ease-in duration-200", "opacity-100", "opacity-0"}, time: 200)}
+  >
+    <%!-- Simple items: Phoenix renders directly --%>
+    <div :if={item.type == "simple"} class="p-md">
+      {item.name}
+    </div>
+    <%!-- Complex items: Svelte island handles internal state and animation --%>
+    <div :if={item.type == "interactive"} phx-hook="InteractiveItem" data-item-id={item.id}>
+    </div>
   </div>
 </div>
 ```
 
-```svelte
-<!-- assets/svelte/AnimatedItem.svelte -->
-<script>
-  import { fly } from "svelte/transition";
-  let { item } = $props();
-</script>
+#### Shared Loading State
 
-<div in:fly={{ y: 20, duration: 200 }} class="p-4 border-b">
-  {item.name}
-</div>
+Both systems show loading indicators. Coordinate via CSS classes — CSS is the neutral ground:
+
+```css
+/* Global loading overlay, triggered by either system */
+.app-loading .loading-indicator { display: flex; }
+.app-loading .content-area { opacity: 0.5; pointer-events: none; }
 ```
 
-### Server-Triggered Svelte Animation
-
+LiveView sets the class via JS:
 ```elixir
-# Server pushes animation trigger
-def handle_info({:score_updated, score}, socket) do
-  {:noreply,
-   socket
-   |> assign(:score, score)
-   |> push_event("score-changed", %{score: score})}
-end
+JS.add_class("app-loading", to: "#app")
 ```
 
+Svelte sets it via DOM:
 ```svelte
 <script>
-  import { Tween } from "svelte/motion";
-  import { cubicOut } from "svelte/easing";
-  import { onMount } from "svelte";
-
-  let { score, live } = $props();
-
-  const displayScore = new Tween(score, { duration: 600, easing: cubicOut });
-
-  // React to prop changes from LiveView
-  $effect(() => {
-    displayScore.target = score;
-  });
+  function startLoading() {
+    document.getElementById("app")?.classList.add("app-loading");
+  }
+  function stopLoading() {
+    document.getElementById("app")?.classList.remove("app-loading");
+  }
 </script>
-
-<span class="text-4xl font-bold tabular-nums">
-  {Math.round(displayScore.current)}
-</span>
 ```
+
+Both frameworks manipulate classes; CSS handles the visual.
 
 ## Reduced Motion
 
@@ -805,6 +1007,47 @@ Don't animate everything at once. Stagger for perceived performance:
   </div>
 {/each}
 ```
+
+### Scroll-Triggered Animations (IntersectionObserver Hook)
+
+When JS commands aren't enough, use a hook with `IntersectionObserver` for
+scroll-triggered reveal animations:
+
+```javascript
+const AnimateOnScroll = {
+  mounted() {
+    this._observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add("animate-slide-up-fade");
+          this._observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.1 });
+
+    this.el.querySelectorAll("[data-animate]").forEach(el => {
+      this._observer.observe(el);
+    });
+  },
+  destroyed() {
+    this._observer?.disconnect();
+  }
+};
+```
+
+```heex
+<div id="scroll-container" phx-hook="AnimateOnScroll">
+  <div data-animate class="opacity-0">First item</div>
+  <div data-animate class="opacity-0">Second item</div>
+</div>
+```
+
+Hook lifecycle callbacks relevant to animation:
+- `mounted()` — element added to DOM, start entrance animations
+- `updated()` — element patched, animate changes
+- `destroyed()` — element about to be removed, clean up observers/timers
+- `disconnected()` — connection lost, consider pausing animations
+- `reconnected()` — connection restored, resume
 
 ## Anti-Patterns
 
