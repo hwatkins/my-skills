@@ -13,6 +13,7 @@ A collection of AI agent skills for the languages and frameworks I work with.
 | `elixir-ecto` | Ecto deep-dive — changesets, Multi, composable queries, migrations, optimistic locking, multi-tenancy |
 | `elixir-otp` | OTP patterns — GenServer, Agent, Task, ETS, supervision trees, Registry, Oban, when NOT to use processes |
 | `elixir-tdd` | TDD enforcement for Elixir — failing tests first, Mox for mocking, StreamData for property-based testing |
+| `api-design` | REST API design for Phoenix — resource routing, error handling, pagination, auth, idempotency, webhooks, OpenAPI |
 
 ### Rust
 
@@ -67,15 +68,24 @@ A collection of AI agent skills for the languages and frameworks I work with.
 
 ```bash
 # Install all skills
-npx skills add yourusername/my-skills
+npx skills add hwatkins/my-skills
 
-# Install specific skills
-npx skills add yourusername/my-skills --skill elixir-phoenix
-npx skills add yourusername/my-skills --skill rust-core
-npx skills add yourusername/my-skills --skill svelte-kit
+# Install a single skill
+npx skills add hwatkins/my-skills --skill elixir-phoenix
+
+# Install multiple skills at once (e.g., all Elixir skills)
+npx skills add hwatkins/my-skills --skill elixir-phoenix --skill elixir-liveview --skill elixir-ecto --skill elixir-otp --skill elixir-tdd --skill api-design
 
 # Install globally (available in all projects)
-npx skills add yourusername/my-skills -g
+npx skills add hwatkins/my-skills -g
+```
+
+**No npx?** Use curl to grab individual skill files:
+
+```bash
+mkdir -p .claude/skills
+curl -sL https://raw.githubusercontent.com/hwatkins/my-skills/main/skills/elixir-phoenix/SKILL.md \
+  -o .claude/skills/elixir-phoenix.md
 ```
 
 ### Option 2: Manual Installation (Claude Code)
@@ -92,6 +102,7 @@ cp -r skills/elixir-liveview .claude/skills/
 cp -r skills/elixir-ecto .claude/skills/
 cp -r skills/elixir-otp .claude/skills/
 cp -r skills/elixir-tdd .claude/skills/
+cp -r skills/api-design .claude/skills/
 
 # Example: copy Rust + Svelte skills for a specific project
 cp -r skills/rust-core .claude/skills/
@@ -111,7 +122,7 @@ cp -r skills/* ~/.claude/skills/
 
 ```bash
 # Clone the repo somewhere permanent
-git clone git@github.com:yourusername/my-skills.git ~/my-skills
+git clone git@github.com:hwatkins/my-skills.git ~/my-skills
 
 # Symlink individual skills
 mkdir -p ~/.claude/skills
@@ -236,6 +247,22 @@ Strict test-driven development enforcement:
 - StreamData for property-based testing
 - What NOT to do (with examples)
 - Pre-implementation checklist
+
+#### api-design
+
+REST API design for Phoenix:
+
+- Resource design (URL structure, HTTP methods, naming conventions)
+- Phoenix patterns (controllers, FallbackController, JSON views, router scoping)
+- Consistent error responses (format, status codes, changeset errors)
+- Pagination (cursor-based preferred, offset for simple cases)
+- Filtering, sorting, and query parameter validation
+- Authentication (Bearer tokens, scoped access)
+- Idempotency keys for safe POST retries
+- Outbound webhooks (event design, HMAC signing, Oban retry delivery)
+- API versioning (URL-based, deprecation strategy)
+- Rate limiting with response headers
+- OpenAPI documentation with open_api_spex
 
 ### Rust
 
