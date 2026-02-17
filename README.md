@@ -14,14 +14,8 @@ A collection of AI agent skills for the languages and frameworks I work with.
 | `elixir-otp` | OTP patterns — GenServer, Agent, Task, ETS, supervision trees, Registry, Oban, when NOT to use processes |
 | `elixir-tdd` | TDD enforcement for Elixir — failing tests first, Mox for mocking, StreamData for property-based testing |
 | `api-design` | REST API design for Phoenix — resource routing, error handling, pagination, auth, idempotency, webhooks, OpenAPI |
-
-### Rust
-
-| Skill | Description |
-|-------|-------------|
-| `rust-core` | Core Rust development — ownership, borrowing, lifetimes, traits, error handling, and idiomatic patterns |
-| `rust-async` | Async Rust with Tokio — futures, concurrency, channels, streams, and performance |
-| `rust-tdd` | Test-driven development enforcement for Rust — requires failing tests before implementation |
+| `liveview-js-interop` | LiveView JS interop — JS commands, hooks, colocated hooks (LV 1.1+), DOM patching, third-party libs, LiveSvelte boundary |
+| `realtime-ux` | UX patterns for real-time interfaces — optimistic UI, presence, conflict resolution, disconnect handling, loading states |
 
 ### Frontend
 
@@ -30,12 +24,22 @@ A collection of AI agent skills for the languages and frameworks I work with.
 | `frontend-typescript` | TypeScript type safety — generics, utility types, discriminated unions, strict patterns |
 | `frontend-tailwind` | Tailwind CSS — utility-first styling, responsive design, component patterns, dark mode |
 | `frontend-design` | Distinctive, production-grade UI design — bold aesthetics, typography, color, motion, anti-AI-slop patterns |
+| `component-design-system` | Unified component library — Phoenix + Svelte components sharing variant APIs, slot patterns, design tokens |
+| `animation-transitions` | Coordinating LiveView JS transitions, Svelte transitions, and CSS animations — page transitions, reduced motion |
 
 ### Svelte
 
 | Skill | Description |
 |-------|-------------|
 | `svelte-core` | Svelte 5 inside Phoenix LiveView via LiveSvelte — props, live.pushEvent, SSR, slots, end-to-end reactivity |
+
+### Rust
+
+| Skill | Description |
+|-------|-------------|
+| `rust-core` | Core Rust development — ownership, borrowing, lifetimes, traits, error handling, and idiomatic patterns |
+| `rust-async` | Async Rust with Tokio — futures, concurrency, channels, streams, and performance |
+| `rust-tdd` | Test-driven development enforcement for Rust — requires failing tests before implementation |
 
 ### Database
 
@@ -264,6 +268,74 @@ REST API design for Phoenix:
 - Rate limiting with response headers
 - OpenAPI documentation with open_api_spex
 
+#### liveview-js-interop
+
+LiveView JavaScript interoperability:
+
+- Decision framework: JS commands → colocated hooks → traditional hooks → LiveSvelte
+- JS commands deep dive (show/hide, transitions, push, dispatch, exec, composing, selectors)
+- Hook lifecycle (mounted, beforeUpdate, updated, destroyed, disconnected, reconnected)
+- DOM patching survival (why JS state gets clobbered, 6 solutions ranked)
+- Server ↔ client communication (pushEvent, handleEvent, reply callbacks, namespacing)
+- Colocated hooks (LV 1.1+ / Phoenix 1.8+) with setup and esbuild config
+- Third-party library integration (maps, charts, rich text editors, drag-and-drop)
+- Hook ↔ LiveSvelte boundary (when to use which)
+- Common use cases (clipboard, infinite scroll, local storage, keyboard shortcuts, resize observers)
+- Anti-patterns (missing ids, no cleanup, DOM mutation without ignore, business logic in hooks)
+- Testing (render_hook, assert_push_event, browser debugging)
+
+#### realtime-ux
+
+UX patterns for real-time interfaces:
+
+- Optimistic UI (CSS loading states, JS commands for instant feedback, optimistic assigns with rollback, optimistic streams)
+- Presence indicators (Phoenix.Presence in LiveView, avatar stacks, idle detection, cursor presence)
+- Conflict resolution (optimistic locking, field-level merging, real-time broadcasting, pessimistic locking)
+- Graceful disconnect handling (connection status banners, unsaved work protection, reconnection state refresh)
+- Loading and skeleton states (skeleton screens, async assigns, inline loading indicators, progress bars)
+- Real-time feedback (toast notifications, live counters, typing indicators, data update highlights)
+- Anti-patterns (silent disconnect failures, optimistic UI for irreversible actions, ignoring concurrent edits)
+
+### Frontend
+
+#### frontend-typescript
+
+TypeScript type safety patterns for frontend development.
+
+#### frontend-tailwind
+
+Tailwind CSS utility-first styling patterns.
+
+#### frontend-design
+
+Distinctive, production-grade UI design principles.
+
+#### component-design-system
+
+Unified component library architecture:
+
+- Design token system (Tailwind config as token layer, CSS custom properties for runtime theming)
+- Phoenix function component patterns (variant + size API, icon buttons, named slots, table with slot attributes, badge, form input)
+- Svelte component patterns (mirroring variant API, Svelte 5 snippets, generic data table)
+- Cross-boundary consistency (shared vocabulary table, matching variant values, shared class maps)
+- File organization (where Phoenix components vs Svelte components live)
+- When Phoenix vs when Svelte (decision table)
+- Anti-patterns (duplicating components, inconsistent variants, hardcoded colors, skipping :global)
+
+#### animation-transitions
+
+Coordinating three animation systems:
+
+- Decision framework: CSS → JS commands → Svelte transitions → Spring/Tween
+- CSS transitions and keyframes (interactive states, Tailwind animation utilities)
+- LiveView JS command transitions (3-tuple syntax, modal/flash/dropdown patterns, highlight on update)
+- Svelte transitions (built-in: fade/fly/slide/scale/blur/crossfade, local vs global, custom functions)
+- Svelte motion (Spring for physics-based, Tween for interpolated values)
+- Page transitions in LiveView navigation (CSS on mount, navigation events, View Transitions API, Svelte page transitions)
+- Coordinating systems together (LiveView modal with Svelte content, server-triggered Svelte animation)
+- Reduced motion (CSS, Svelte prefersReducedMotion, Tailwind motion-reduce)
+- Performance (composite properties only, CSS mode over tick, stagger animations)
+
 ### Rust
 
 #### rust-core
@@ -300,44 +372,6 @@ Strict test-driven development for Rust:
 - Async testing with `#[tokio::test]`
 - Property-based testing with `proptest`
 - Parameterized tests with `rstest`
-
-### Frontend
-
-#### frontend-typescript
-
-TypeScript type safety and patterns:
-
-- Discriminated unions for state management
-- Generics and utility types
-- Strict null handling and type guards
-- Zod for runtime validation
-- Async patterns and error handling
-- Module organization
-
-#### frontend-tailwind
-
-Tailwind CSS styling:
-
-- Responsive design (mobile-first breakpoints)
-- Layout patterns (flexbox, grid, sidebar)
-- Component patterns (buttons, cards, forms)
-- Dark mode
-- Animations and transitions
-- Class organization and `cn()` utility
-- Custom theme configuration
-
-#### frontend-design
-
-Distinctive frontend interface design:
-
-- Design thinking process (purpose, tone, constraints, differentiation)
-- Typography (distinctive font pairing, avoiding generic choices)
-- Color & theme (CSS variables, dominant + accent palettes)
-- Motion (staggered reveals, scroll-triggering, hover states)
-- Spatial composition (asymmetry, overlap, grid-breaking)
-- Backgrounds & visual details (textures, gradients, grain overlays)
-- Anti-patterns to avoid (generic AI aesthetics)
-- Project context: Secret Falls hiking trails
 
 ### Svelte
 
