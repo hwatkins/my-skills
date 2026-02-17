@@ -211,6 +211,52 @@ src/
 - Avoid unnecessary allocations in hot paths
 - Use `Vec::with_capacity` when the size is known ahead of time
 
+## Unsafe & FFI
+
+- Minimize `unsafe` — use only when safe abstractions can't express the invariant
+- Every `unsafe` block **must** have a `// SAFETY:` comment explaining why it's sound
+- Encapsulate `unsafe` behind safe public APIs — callers should never need `unsafe`
+- Prefer existing safe abstractions (`Vec`, `Box`, `Arc`) over raw pointers
+
+```rust
+// ✅ Good: Safe wrapper around unsafe
+pub fn split_at_unchecked(s: &str, mid: usize) -> (&str, &str) {
+    assert!(s.is_char_boundary(mid), "not a char boundary");
+    // SAFETY: We verified mid is a valid char boundary above
+    unsafe { (s.get_unchecked(..mid), s.get_unchecked(mid..)) }
+}
+
+// ❌ Bad: Unsafe without justification or bounds checking
+pub fn bad_split(s: &str, mid: usize) -> (&str, &str) {
+    unsafe { (s.get_unchecked(..mid), s.get_unchecked(mid..)) }
+}
+```
+
+**FFI basics:**
+
+```rust
+// Calling C from Rust
+extern "C" {
+    fn strlen(s: *const std::ffi::c_char) -> usize;
+}
+
+fn safe_strlen(s: &std::ffi::CStr) -> usize {
+    // SAFETY: CStr guarantees null-terminated, valid pointer
+    unsafe { strlen(s.as_ptr()) }
+}
+
+// Exposing Rust to C
+#[no_mangle]
+pub extern "C" fn add(a: i32, b: i32) -> i32 {
+    a + b
+}
+```
+
+- Use `CStr`/`CString` for C string interop (never raw `*const u8`)
+- Use `bindgen` to auto-generate FFI bindings from C headers
+- Run `cargo miri test` to detect undefined behavior in unsafe code
+- Audit all `unsafe` during code review — treat it as a red flag to verify
+
 ## Common Crates
 
 | Purpose | Crate |
