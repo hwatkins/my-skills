@@ -41,6 +41,12 @@ A collection of AI agent skills for the languages and frameworks I work with.
 | `rust-async` | Async Rust with Tokio — futures, concurrency, channels, streams, and performance |
 | `rust-tdd` | Test-driven development enforcement for Rust — requires failing tests before implementation |
 
+### 6502 Assembly
+
+| Skill | Description |
+|-------|-------------|
+| `6502-assembly` | MOS 6502 assembly language — instruction set, addressing modes, algorithms, optimization, platform-specific patterns (NES, C64, Apple II, Atari, BBC Micro) |
+
 ### Database
 
 | Skill | Description |
